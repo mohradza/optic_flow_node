@@ -2,8 +2,6 @@
 
 namespace wf_of{
 
-static const std::string OPENCV_WINDOW = "Image Window";
-
 OpticFlowNode::OpticFlowNode(const ros::NodeHandle &node_handle,
                                        const ros::NodeHandle &private_node_handle)
       :nh_(node_handle),
@@ -30,9 +28,10 @@ void OpticFlowNode::init() {
     // Import parameters
     //nh_.param("/nearness_control_node/total_horiz_scan_points", total_h_scan_points_, 1440);
     //ROS_INFO("%d", total_h_scan_points_);
+    OPENCV_WINDOW = "Image Window";
 
     if(debug_){
-      namedWindow("window1");
+      namedWindow(OPENCV_WINDOW);
     }
 
 } // End of init
@@ -47,12 +46,12 @@ void OpticFlowNode::init() {
 
 void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     // Convert the ros image msg into a cv mat
-    cv_bridge::CvImagePtr image_ptr;
+    CvImagePtr image_ptr;
     try
     {
         image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
     }
-    catch (cv_bridge::Exception& e)
+    catch (Exception& e)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
