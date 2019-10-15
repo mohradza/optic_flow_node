@@ -21,6 +21,7 @@
 
 using namespace cv_bridge;
 using namespace cv;
+using namespace std;
 
 namespace wf_of{
 
@@ -42,8 +43,20 @@ class OpticFlowNode{
         std::string node_name_{"node_name"};
 
         ros::Subscriber image_sub_;
-
+        std::string OPENCV_WINDOW;
         bool debug_;
+        std::vector<Point2f> points2track_;
+        std::vector<Point2f> newpoints_;
+        std::vector<float> gamma_vector_;
+
+        int image_center_x_;
+        int image_center_y_;
+        double inner_ring_radius_;
+        int num_ring_points_;
+        int num_rings_;
+        int ring_dr_;
+        Mat prev_grey_image_;
+        bool init_;
 
 
 };
