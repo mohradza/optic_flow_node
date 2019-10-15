@@ -8,6 +8,7 @@ project(optic_flow_node)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  dynamic_reconfigure
   cv_bridge
   roscpp
   rospy
@@ -70,10 +71,9 @@ find_package(OpenCV REQUIRED)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+ generate_dynamic_reconfigure_options(
+   cfg/OpticFlowNode.cfg
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -100,12 +100,13 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
 add_library(wide_field_optic_flow src/wide_field_optic_flow.cpp)
 add_dependencies(wide_field_optic_flow ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
 add_executable(wide_field_optic_flow_node src/wide_field_optic_flow_node.cpp)
-target_link_libraries(wide_field_optic_flow_node wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(wide_field_optic_flow_node wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
