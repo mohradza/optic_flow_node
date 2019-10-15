@@ -55,7 +55,10 @@ class OpticFlowNode{
         void configCb(Config &config, uint32_t level);
 
         ros::Subscriber sub_image_;
+        ros::Publisher pub_u_flow_;
+        ros::Publisher pub_v_flow_;
         ros::Publisher pub_tang_flow_;
+
 
         std::string OPENCV_WINDOW;
         bool debug_;

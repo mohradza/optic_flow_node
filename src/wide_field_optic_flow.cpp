@@ -21,6 +21,8 @@ void OpticFlowNode::init() {
     sub_image_ = nh_.subscribe("/usb_cam/image_raw", 1, &OpticFlowNode::imageCb, this);
 
     // Set up publishers
+    pub_u_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("u_flow", 10);
+    pub_v_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("v_flow", 10);
     pub_tang_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("tang_optic_flow", 10);
 
     // Import parameters
@@ -33,7 +35,7 @@ void OpticFlowNode::init() {
 
     // LK parameters
     nh_.param("/optic_flow_node/pyr_window_size", win_size_, 30);
-    nh_.param("/optic_flow_node/pixel_scale", pixel_scale_, 15.0);
+    nh_.param("/optic_flow_node/pixel_scale", pixel_scale_, 150.0);
 
     // Switches
     nh_.param("/optic_flow_node/enable_debug", debug_, true);
@@ -123,9 +125,19 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     v_flow_.clear();
     for (int i = 0; i < num_ring_points_*num_rings_; i++){
         u_flow_.push_back((points2track_[i].x - newpoints_[i].x)*pixel_scale_/dt_);
-        v_flow_.push_back(points2track_[i].y - newpoints_[i].y);
+        v_flow_.push_back((points2track_[i].y - newpoints_[i].y)*pixel_scale_/dt_);
         //ROS_INFO("%f, %f", u_flow_[i], v_flow_[i]);
     }
+
+    if(debug_){
+        std_msgs::Float32MultiArray u_flow_msg;
+        u_flow_msg.data = u_flow_;
+        std_msgs::Float32MultiArray v_flow_msg;
+        v_flow_msg.data = v_flow_;
+        pub_u_flow_.publish(u_flow_msg);
+        pub_v_flow_.publish(v_flow_msg);
+    }
+
     // Convert u-v flow to tangential flow
     int index;
     tang_flow_.clear();
