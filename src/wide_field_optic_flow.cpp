@@ -47,6 +47,22 @@ void OpticFlowNode::init() {
       namedWindow(OPENCV_WINDOW);
     }
 
+        gamma_vector_.clear();
+    for(int i = 0; i < num_ring_points_; i++){
+        gamma_vector_.push_back((float(i)/float(num_ring_points_-1))*2*M_PI);// - M_PI);
+    }
+
+    points2track_.clear();
+    points2track_.push_back(Point2f((float)image_center_x_, (float)image_center_y_));
+    for(int r = 0; r < num_rings_; r++){
+        for(int i = 0; i < num_ring_points_; i++){
+           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]));
+           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]));
+           points2track_.push_back(Point2f((float)x, (float)y));
+        }
+    }
+
+
 } // End of init
 
 void OpticFlowNode::configCb(Config &config, uint32_t level)
@@ -64,7 +80,7 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
 
     gamma_vector_.clear();
     for(int i = 0; i < num_ring_points_; i++){
-        gamma_vector_.push_back((float(i)/float(num_ring_points_-1))*2*M_PI - M_PI);
+        gamma_vector_.push_back((float(i)/float(num_ring_points_-1))*2*M_PI);// - M_PI);
     }
 
     points2track_.clear();
@@ -124,8 +140,8 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     u_flow_.clear();
     v_flow_.clear();
     for (int i = 0; i < num_ring_points_*num_rings_; i++){
-        u_flow_.push_back((points2track_[i].x - newpoints_[i].x)*pixel_scale_/dt_);
-        v_flow_.push_back((points2track_[i].y - newpoints_[i].y)*pixel_scale_/dt_);
+        u_flow_.push_back((points2track_[i].x - newpoints_[i].x)/(pixel_scale_*dt_)); //*pixel_scale_/dt_);
+        v_flow_.push_back((points2track_[i].y - newpoints_[i].y)/(pixel_scale_*dt_)); //*pixel_scale_/dt_);
         //ROS_INFO("%f, %f", u_flow_[i], v_flow_[i]);
     }
 
