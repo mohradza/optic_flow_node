@@ -56,8 +56,8 @@ void OpticFlowNode::init() {
     points2track_.push_back(Point2f((float)image_center_x_, (float)image_center_y_));
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
-           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]));
-           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]));
+           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]-M_PI));
+           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]-M_PI));
            points2track_.push_back(Point2f((float)x, (float)y));
         }
     }
@@ -87,8 +87,8 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
     points2track_.push_back(Point2f((float)image_center_x_, (float)image_center_y_));
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
-           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]));
-           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]));
+           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]-M_PI));
+           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]-M_PI));
            points2track_.push_back(Point2f((float)x, (float)y));
         }
     }
