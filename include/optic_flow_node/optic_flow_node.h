@@ -66,7 +66,7 @@ class OpticFlowNode{
         std::vector<Point2f> newpoints_;
         std::vector<float> u_flow_;
         std::vector<float> v_flow_;
-        std::vector<float> tang_flow_;
+        //std::vector<float> tang_flow_;
         std::vector<float> ave_tang_flow_;
         std::vector<float> gamma_vector_;
 
@@ -81,7 +81,7 @@ class OpticFlowNode{
         int win_size_;
         double pixel_scale_;
         float dt_;
-
+        Mat tang_flow_= Mat(10,10, CV_32F);
         ros::Time image_timestamp_;
         ros::Time last_image_timestamp_;
 
