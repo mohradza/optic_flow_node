@@ -22,10 +22,14 @@
 #include <image_transport/image_transport.h>
 #include <optic_flow_node/OpticFlowNodeConfig.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Core>
+
 
 using namespace cv_bridge;
 using namespace cv;
 using namespace std;
+using namespace Eigen;
 
 namespace wf_of{
 
@@ -81,7 +85,9 @@ class OpticFlowNode{
         int win_size_;
         double pixel_scale_;
         float dt_;
-        Mat tang_flow_= Mat(10,10, CV_32F);
+
+        MatrixXd tang_flow_;
+        //Mat tang_flow_= Mat(num_rings_, num_ring_points_, CV_32F);
         ros::Time image_timestamp_;
         ros::Time last_image_timestamp_;
 

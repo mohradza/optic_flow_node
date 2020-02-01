@@ -54,21 +54,21 @@ void OpticFlowNode::init() {
 
     points2track_.clear();
     points2track_.push_back(Point2f((float)image_center_x_, (float)image_center_y_));
-    float dg = 2*M_PI/num_ring_points_;
+    float dg = 0;//2*M_PI/num_ring_points_;
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
            int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
            int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]+dg));
            points2track_.push_back(Point2f((float)x, (float)y));
-//           if (i==0){
-//             ROS_INFO("x0: %d, y0: %d", x, y);
-//           }
-//           if (i==1){
-//             ROS_INFO("x1: %d, y1: %d", x, y);
-//           }
-//           if (i==79){
-//             ROS_INFO("xend: %d, yend: %d", x, y);
-//           }
+           if (i==0){
+             ROS_INFO("x0: %d, y0: %d", x, y);
+           }
+           if (i==1){
+             ROS_INFO("x1: %d, y1: %d", x, y);
+           }
+           if (i==79){
+             ROS_INFO("xend: %d, yend: %d", x, y);
+           }
         }
     }
 
@@ -95,7 +95,7 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
 
     points2track_.clear();
     points2track_.push_back(Point2f((float)image_center_x_, (float)image_center_y_));
-    float dg = 2*M_PI/num_ring_points_;
+    float dg = 0;//2*M_PI/num_ring_points_;
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
            int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
@@ -167,15 +167,15 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     // Convert u-v flow to tangential flow
     int index;
-    //tang_flow_.clear();
+    tang_flow_.resize(num_rings_,num_ring_points_);
     for (int r = 0; r < num_rings_; r++){
         for (int i = 0; i < num_ring_points_; i++){
             index = r*num_ring_points_ + i;
-            tang_flow_.at<float>(Point(r,i)) = (u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
+            tang_flow_(r,i) = (u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
             //ROS_INFO("Mat: %f",(u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i])));
             //ROS_INFO("tang: %f", tang_flow_.at<float>(Point(r,i)));
             //ROS_INFO("|");
-            //tang_flow_.push_back(u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
+//            tang_flow_.push_back(u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
             //ROS_INFO("index: %i", index);
             //ROS_INFO("x: %f, y: %f, Q %f", points2track_[index].x, points2track_[index].y, tang_flow_[index]);
             //if (points2track_[index].y<0 || points2track_[index].y>480){
@@ -189,11 +189,12 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     std::vector<float> xring;
     ave_tang_flow_.clear();
     for (int i = 0; i < num_ring_points_; i++){
+//      ave_tang_flow_.push_back(tang_flow_[i]/num_rings_);
       xring.clear();
       int c = 0;
           for (int r = 0; r < num_rings_; r++){
             if (points2track_[index].y>=0 || points2track_[index].y<=480){
-              xring.push_back(tang_flow_.at<float>(Point(r,i)));
+              xring.push_back(tang_flow_(r,i));
               c++;
             }
           }

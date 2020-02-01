@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 #find_package(Boost REQUIRED COMPONENTS system)
@@ -89,6 +90,7 @@ catkin_package(
   LIBRARIES optic_flow_node
   CATKIN_DEPENDS cv_bridge roscpp rospy sensor_msgs std_msgs image_transport
   DEPENDS OpenCV
+  DEPENDS EIGEN3
 )
 
 ###########
@@ -102,11 +104,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(wide_field_optic_flow src/wide_field_optic_flow.cpp)
 add_dependencies(wide_field_optic_flow ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${EIGEN3_LIBRARIES})
 
 add_executable(wide_field_optic_flow_node src/wide_field_optic_flow_node.cpp)
-target_link_libraries(wide_field_optic_flow_node wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(wide_field_optic_flow_node wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${EIGEN3_LIBRARIES})
