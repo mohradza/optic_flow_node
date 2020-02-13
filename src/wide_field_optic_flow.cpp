@@ -57,18 +57,10 @@ void OpticFlowNode::init() {
     float dg = 2*M_PI/num_ring_points_;
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
-           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
-           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]+dg));
+           int x = image_center_x_ - int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
+           int y =  image_center_y_ + int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]+dg));
+           //ROS_INFO("i: %i,x: %i,y: %i",i,x,y);
            points2track_.push_back(Point2f((float)x, (float)y));
-           if (i==0){
-             ROS_INFO("x0: %d, y0: %d", x, y);
-           }
-           if (i==1){
-             ROS_INFO("x1: %d, y1: %d", x, y);
-           }
-           if (i==79){
-             ROS_INFO("xend: %d, yend: %d", x, y);
-           }
         }
     }
 
@@ -98,8 +90,8 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
     float dg = 2*M_PI/num_ring_points_;
     for(int r = 0; r < num_rings_; r++){
         for(int i = 0; i < num_ring_points_; i++){
-           int x = image_center_x_ + int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
-           int y =  image_center_y_ - int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]+dg));
+           int x = image_center_x_ - int((inner_ring_radius_+float(r)*ring_dr_)*sin(gamma_vector_[i]+dg));
+           int y =  image_center_y_ + int((inner_ring_radius_+float(r)*ring_dr_)*cos(gamma_vector_[i]+dg));
            points2track_.push_back(Point2f((float)x, (float)y));
         }
     }
@@ -111,9 +103,17 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     // Convert the ros image msg into a cv mat
     image_timestamp_ = image_msg->header.stamp;
     CvImagePtr image_ptr;
+    cv::Mat flippedx, flippedxy;
     try
     {
         image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
+        // Flip about x for visualization
+        cv::flip(image_ptr->image, flippedxy, 0);
+        // Flip image about y axis
+        //cv::flip(flippedx, flippedxy, 1);
+        // If you dont need to flip it use line below
+        //flippedxy = image_ptr->image;
+
     }
     catch (cv_bridge::Exception& e)
     {
@@ -123,7 +123,8 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     cv::Mat grey_image;
     cv::Mat grey_image_overlay;
-    cv::cvtColor(image_ptr->image, grey_image, CV_BGR2GRAY);
+    cv::cvtColor(flippedxy, grey_image, CV_BGR2GRAY);
+    // Flip image
 
     if (init_){
         init_ = false;
@@ -141,9 +142,9 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, 3, termcrit, 0, 0.001);
 
-    // Process the CV mat and compute optic optic flow at various pixels
+    // Process the CV mat and compute optic flow at various pixels
     for (int i= 1; i < num_ring_points_*num_rings_; i++){
-        cv::line(image_ptr->image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2);
+        cv::line(flippedxy, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
     prev_grey_image_ = grey_image;
 
@@ -151,9 +152,8 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     u_flow_.clear();
     v_flow_.clear();
     for (int i = 0; i < num_ring_points_*num_rings_; i++){
-        u_flow_.push_back((points2track_[i].x - newpoints_[i].x)/(pixel_scale_*dt_)); //*pixel_scale_/dt_);
-        v_flow_.push_back((points2track_[i].y - newpoints_[i].y)/(pixel_scale_*dt_)); //*pixel_scale_/dt_);
-        //ROS_INFO("%f, %f", u_flow_[i], v_flow_[i]);
+        u_flow_.push_back((-points2track_[i].x + newpoints_[i].x)/(pixel_scale_*dt_));
+        v_flow_.push_back((-points2track_[i].y + newpoints_[i].y)/(pixel_scale_*dt_));
     }
 
     if(debug_){
@@ -172,15 +172,6 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         for (int i = 0; i < num_ring_points_; i++){
             index = r*num_ring_points_ + i;
             tang_flow_(r,i) = (u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
-            //ROS_INFO("Mat: %f",(u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i])));
-            //ROS_INFO("tang: %f", tang_flow_.at<float>(Point(r,i)));
-            //ROS_INFO("|");
-//            tang_flow_.push_back(u_flow_[index]*cos(gamma_vector_[i]) + v_flow_[index]*sin(gamma_vector_[i]));
-            //ROS_INFO("index: %i", index);
-            //ROS_INFO("x: %f, y: %f, Q %f", points2track_[index].x, points2track_[index].y, tang_flow_[index]);
-            //if (points2track_[index].y<0 || points2track_[index].y>480){
-            //  ROS_INFO("x: %f, y: %f, Q %f", points2track_[index].x, points2track_[index].y, tang_flow_[index]);
-          //  }
         }
     }
 
@@ -189,16 +180,16 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     std::vector<float> xring;
     ave_tang_flow_.clear();
     for (int i = 0; i < num_ring_points_; i++){
-//      ave_tang_flow_.push_back(tang_flow_[i]/num_rings_);
       xring.clear();
       int c = 0;
           for (int r = 0; r < num_rings_; r++){
+            // Only average pixels inside the image
             if (points2track_[index].y>=0 || points2track_[index].y<=480){
               xring.push_back(tang_flow_(r,i));
               c++;
             }
           }
-        //if if (points2track_[index].y>=0 || points2track_[index].y>480){
+        // Average rings
         ave_tang_flow_.push_back(std::accumulate(xring.begin(),xring.end(),0.0)/c);
     }
 
@@ -208,7 +199,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     // Display the image with resulting flow
     if(debug_){
-        imshow("window1", image_ptr->image);
+        imshow("window1", flippedxy);//image_ptr->image);
         waitKey(3);
     }
 }

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 #import pandas as pd
 
 # ~~ Setting and Constants ~~
-numReadings   = 160
+numReadings   = 161
 threshold     =   9.0
 preturn_thresh = 5.0
 plotCarts     =   1
@@ -49,8 +49,8 @@ try:
 		# plt.figure(num=1, figsize=(9, 6), dpi=80, facecolor='w', edgecolor='k')
         plt.plot( lastOflowNP , 'b.' )
         plt.hold( False )
-        plt.xlim( [ 0 , 160 ] )
-        plt.ylim( [ -0.5 , 0.5] )
+        plt.xlim( [ 0 , 161 ] )
+        plt.ylim( [ -3 , 3] )
         plt.xlabel("Gamma")
         plt.title("Optic FLOW")
 
