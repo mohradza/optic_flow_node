@@ -32,13 +32,16 @@ void OpticFlowNode::init() {
     nh_.param("/optic_flow_node/num_ring_points", num_ring_points_, 30);
     nh_.param("/optic_flow_node/num_rings", num_rings_, 1);
     nh_.param("/optic_flow_node/ring_dr", ring_dr_, 5);
+    nh_.param("/optic_flow_node/blur_size", blur_size_, 5);
 
     // LK parameters
     nh_.param("/optic_flow_node/pyr_window_size", win_size_, 30);
     nh_.param("/optic_flow_node/pixel_scale", pixel_scale_, 150.0);
 
+
     // Switches
     nh_.param("/optic_flow_node/enable_debug", debug_, true);
+    nh_.param("/optic_flow_node/if_blur", if_blur_, false);
 
     // Set up an opencv window for debugging
     OPENCV_WINDOW = "Image Window";
@@ -79,6 +82,7 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
     num_rings_ = config.num_rings;
     win_size_ = config.pyr_window_size;
     pixel_scale_ = config.pixel_scale;
+    blur_size_ = config.blur_size;
 
     gamma_vector_.clear();
     for(int i = 0; i < num_ring_points_; i++){
@@ -107,12 +111,8 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     try
     {
         image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
-        // Flip about x for visualization
+        // Flip image
         cv::flip(image_ptr->image, flippedxy, 0);
-        // Flip image about y axis
-        //cv::flip(flippedx, flippedxy, 1);
-        // If you dont need to flip it use line below
-        //flippedxy = image_ptr->image;
 
     }
     catch (cv_bridge::Exception& e)
@@ -120,11 +120,14 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
 
+    // Apply Gaussian Blur to colored image
+    if (if_blur_){
+      cv::GaussianBlur(flippedxy, flippedxy, Size(blur_size_,blur_size_), 0, 0 );
+    }
 
     cv::Mat grey_image;
     cv::Mat grey_image_overlay;
     cv::cvtColor(flippedxy, grey_image, CV_BGR2GRAY);
-    // Flip image
 
     if (init_){
         init_ = false;

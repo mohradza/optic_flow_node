@@ -82,7 +82,9 @@ class OpticFlowNode{
         int ring_dr_;
         Mat prev_grey_image_;
         bool init_;
+        bool if_blur_;
         int win_size_;
+        int blur_size_;
         double pixel_scale_;
         float dt_;
 
