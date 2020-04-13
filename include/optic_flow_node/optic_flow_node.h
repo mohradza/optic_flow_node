@@ -62,7 +62,7 @@ class OpticFlowNode{
         ros::Publisher pub_u_flow_;
         ros::Publisher pub_v_flow_;
         ros::Publisher pub_tang_flow_;
-
+        ros::Publisher pub_filt_tang_flow_;
 
         std::string OPENCV_WINDOW;
         bool debug_;
@@ -72,6 +72,8 @@ class OpticFlowNode{
         std::vector<float> v_flow_;
         //std::vector<float> tang_flow_;
         std::vector<float> ave_tang_flow_;
+        std::vector<float> filt_ave_tang_flow_;
+        std::vector<float> prev_filtered_oflow_;
         std::vector<float> gamma_vector_;
 
         int image_center_x_;
@@ -85,6 +87,7 @@ class OpticFlowNode{
         bool if_blur_;
         int win_size_;
         int blur_size_;
+        double alpha_;
         double pixel_scale_;
         float dt_;
 

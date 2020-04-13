@@ -24,6 +24,7 @@ void OpticFlowNode::init() {
     pub_u_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("u_flow", 10);
     pub_v_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("v_flow", 10);
     pub_tang_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("tang_optic_flow", 10);
+    pub_filt_tang_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("tang_optic_flow/filtered", 10);
 
     // Import parameters
     nh_.param("/optic_flow_node/image_center_x", image_center_x_, 325);
@@ -33,6 +34,7 @@ void OpticFlowNode::init() {
     nh_.param("/optic_flow_node/num_rings", num_rings_, 1);
     nh_.param("/optic_flow_node/ring_dr", ring_dr_, 5);
     nh_.param("/optic_flow_node/blur_size", blur_size_, 5);
+    nh_.param("/optic_flow_node/alpha", alpha_, 0.7);
 
     // LK parameters
     nh_.param("/optic_flow_node/pyr_window_size", win_size_, 30);
@@ -50,7 +52,7 @@ void OpticFlowNode::init() {
       namedWindow(OPENCV_WINDOW);
     }
 
-        gamma_vector_.clear();
+    gamma_vector_.clear();
     for(int i = 0; i < num_ring_points_; i++){
         gamma_vector_.push_back((float(i)/float(num_ring_points_))*2*M_PI);// - M_PI);
     }
@@ -83,6 +85,7 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
     win_size_ = config.pyr_window_size;
     pixel_scale_ = config.pixel_scale;
     blur_size_ = config.blur_size;
+    alpha_ = config.alpha;
 
     gamma_vector_.clear();
     for(int i = 0; i < num_ring_points_; i++){
@@ -130,7 +133,6 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     cv::cvtColor(flippedxy, grey_image, CV_BGR2GRAY);
 
     if (init_){
-        init_ = false;
         prev_grey_image_ = grey_image;
         dt_ = 10000;
     } else {
@@ -197,16 +199,30 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     }
 
     tang_flow_msg.data = ave_tang_flow_;
-
     pub_tang_flow_.publish(tang_flow_msg);
+
+    // Low pass filter on averaged tangential optic flow
+    std_msgs::Float32MultiArray filt_tang_flow_msg;
+
+    if (init_){
+        filt_ave_tang_flow_ = ave_tang_flow_;
+        init_ = false;
+    }
+    else{
+        for (int i = 0; i < num_ring_points_; i++){
+            filt_ave_tang_flow_[i] = alpha_*ave_tang_flow_[i] + (1-alpha_)*prev_filtered_oflow_[i];
+        }
+    }
+
+    prev_filtered_oflow_ = filt_ave_tang_flow_;
+    filt_tang_flow_msg.data = filt_ave_tang_flow_;
+    pub_filt_tang_flow_.publish(filt_tang_flow_msg);
 
     // Display the image with resulting flow
     if(debug_){
         imshow("window1", flippedxy);//image_ptr->image);
         waitKey(3);
     }
-}
 
-
- // end of class
+} // end of class
 } // End of namespace nearness
