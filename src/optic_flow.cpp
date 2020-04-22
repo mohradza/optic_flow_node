@@ -123,6 +123,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     cv::Size winSize(win_size_,win_size_);
     TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
 
+
     float img_width = grey_image.cols;
     float img_height = grey_image.rows;
     float col_spacing = img_width  / (num_of_cols_ + 1);
@@ -131,36 +132,17 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     points2track_.clear();
     for(int r = 1; r < num_of_rows_ + 1; r++){
         for(int c = 1; c < num_of_cols_ + 1; c++){
-           int x = c * col_spacing;
-           int y = r * row_spacing;
+           int x = roundf(c * col_spacing);
+           int y = roundf(r * row_spacing);
            points2track_.push_back(Point2f((float)x, (float)y));
         }
     }
 
     cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, 3, termcrit, 0, 0.001);
 
-    // for (int i = 0; i < status.size(); i++) {
-    //     std::cout << status.at(i) << ' ';
-    // }
-
-    printf( "Status: %u", status[0]);
-
-    // cout << "value is " << unsigned(status[0]) << endl;
-
-    // for(unsigned short int i = 0; i < sizeof(status); i++){
-    // std::cout << std::hex << (int) status[i] << std::dec << ' ';
-    // }
-
-    std::cout << std::endl;
-
-
-    // for (int i = 0; i < status.size(); i++) {
-    //     std::cout << err.at(i) << ' ';
-
-    
     // Process the CV mat and compute optic flow at various pixels
-    for (int i= 0; i < num_of_cols_*num_of_rows_; i++){
-        cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),3); //image_ptr->image
+    for (int i= 1; i < num_of_cols_*num_of_rows_; i++){
+        cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
     prev_grey_image_ = grey_image;
 
@@ -181,6 +163,10 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         pub_v_flow_.publish(v_flow_msg);
     }
 
+    if (init_){
+        init_ = false;
+    }
+    
     // Display the image with resulting flow
     if(debug_){
         imshow("window1", rgb_image);//image_ptr->image);

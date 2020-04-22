@@ -17,11 +17,12 @@
       <param name="blur_size" value="5"/>
       <param name="alpha" value="0.7"/>
 
+
       <param name="num_ring_points" value="100"/>
       <param name="num_rings" value="100"/>
 
-      <param name="num_of_rows" value="1"/>
-      <param name="num_of_cols" value="1"/>
+      <param name="num_of_rows" value="23"/>
+      <param name="num_of_cols" value="23"/>
   </node>
 
   <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="oflow_visualizer" type="oflow_visualizer.py" output="screen"/>
