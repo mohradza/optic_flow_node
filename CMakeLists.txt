@@ -107,6 +107,15 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+# Optic Flow Node
+add_library(optic_flow src/optic_flow.cpp)
+add_dependencies(optic_flow ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${EIGEN3_LIBRARIES})
+
+add_executable(optic_flow_node src/optic_flow_node.cpp)
+target_link_libraries(optic_flow_node optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${EIGEN3_LIBRARIES})
+
+# Wide Field Optic Flow Node
 add_library(wide_field_optic_flow src/wide_field_optic_flow.cpp)
 add_dependencies(wide_field_optic_flow ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(wide_field_optic_flow ${catkin_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${EIGEN3_LIBRARIES})

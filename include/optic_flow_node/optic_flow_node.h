@@ -91,6 +91,10 @@ class OpticFlowNode{
         double pixel_scale_;
         float dt_;
 
+        int num_of_rows_;
+        int num_of_cols_;
+        bool if_flip_;
+
         MatrixXd tang_flow_;
         //Mat tang_flow_= Mat(num_rings_, num_ring_points_, CV_32F);
         ros::Time image_timestamp_;
