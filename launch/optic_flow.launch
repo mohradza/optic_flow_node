@@ -10,19 +10,22 @@
       <param name="ring_dr" value="10"/>
       <param name="num_ring_points" value="160"/>
       <param name="num_rings" value="5"/>
-      <param name="pyr_window_size" value="100"/>
       <param name="pixel_scale" value="215"/>
-      <!-- Blur size must be an int odd number -->
-      <param name="if_blur" value="false"/>
-      <param name="blur_size" value="5"/>
       <param name="alpha" value="0.7"/>
-
 
       <param name="num_ring_points" value="100"/>
       <param name="num_rings" value="100"/>
 
       <param name="num_of_rows" value="23"/>
       <param name="num_of_cols" value="23"/>
+
+      <param name="pyr_window_size" value="100"/>
+      <param name="num_of_pyramids" value="3"/>
+
+      <param name="if_blur" value="true"/>
+      <!-- Blur size must be an int odd number -->
+      <param name="blur_size" value="21"/>
+
   </node>
 
   <!-- <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="rgb_oflow_visualizer" type="oflow_visualizer.py" output="screen"/> -->
@@ -37,17 +40,21 @@
       <param name="num_rings" value="5"/>
       <param name="pyr_window_size" value="41"/>
       <param name="pixel_scale" value="215"/>
-      <!-- Blur size must be an int odd number -->
-      <param name="if_blur" value="true"/>
-      <param name="blur_size" value="21"/>
       <param name="alpha" value="0.7"/>
-
 
       <param name="num_ring_points" value="100"/>
       <param name="num_rings" value="100"/>
 
       <param name="num_of_rows" value="23"/>
       <param name="num_of_cols" value="23"/>
+
+      <param name="pyr_window_size" value="41"/>
+      <param name="num_of_pyramids" value="7"/>
+
+      <param name="if_blur" value="true"/>
+      <!-- Blur size must be an int odd number -->
+      <param name="blur_size" value="41"/>
+
   </node>
 
   <!-- <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="thermal_oflow_visualizer" type="oflow_visualizer.py" output="screen"/> -->

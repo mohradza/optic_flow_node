@@ -27,24 +27,24 @@ void OpticFlowNode::init() {
     pub_filt_tang_flow_ = nh_.advertise<std_msgs::Float32MultiArray>("tang_optic_flow/filtered", 10);
 
     // Import parameters
-    nh_.param("/optic_flow_node/image_center_x", image_center_x_, 325);
-    nh_.param("/optic_flow_node/image_center_y", image_center_y_, 220);
-    nh_.param("/optic_flow_node/inner_ring_radius", inner_ring_radius_, 150.0);
-    nh_.param("/optic_flow_node/num_ring_points", num_ring_points_, 30);
-    nh_.param("/optic_flow_node/num_rings", num_rings_, 1);
-    nh_.param("/optic_flow_node/ring_dr", ring_dr_, 5);
-    nh_.param("/optic_flow_node/blur_size", blur_size_, 5);
-    nh_.param("/optic_flow_node/alpha", alpha_, 0.7);
+    pnh_.param("image_center_x",    image_center_x_,        325);
+    pnh_.param("image_center_y",    image_center_y_,        220);
+    pnh_.param("inner_ring_radius", inner_ring_radius_,     150.0);
+    pnh_.param("num_ring_points",   num_ring_points_,       30);
+    pnh_.param("num_rings",         num_rings_,             1);
+    pnh_.param("ring_dr",           ring_dr_,               5);
+    pnh_.param("blur_size",         blur_size_,             11);
+    pnh_.param("alpha",             alpha_,                 0.7);
 
     // LK parameters
-    nh_.param("/optic_flow_node/pyr_window_size", win_size_, 30);
-    nh_.param("/optic_flow_node/pixel_scale", pixel_scale_, 150.0);
+    pnh_.param("pyr_window_size",   win_size_,              30);
+    pnh_.param("pixel_scale",       pixel_scale_,           150.0);
 
 
     // Switches
-    nh_.param("/optic_flow_node/if_flip", if_flip_, true);
-    nh_.param("/optic_flow_node/enable_debug", debug_, true);
-    nh_.param("/optic_flow_node/if_blur", if_blur_, false);
+    pnh_.param("if_flip",           if_flip_,               true);
+    pnh_.param("enable_debug",      debug_,                 true);
+    pnh_.param("if_blur",           if_blur_,               false);
 
     // Set up an opencv window for debugging
     OPENCV_WINDOW = "Image Window";
@@ -57,28 +57,26 @@ void OpticFlowNode::init() {
 
 void OpticFlowNode::configCb(Config &config, uint32_t level)
 {
-    config_ = config;
+    config_             = config;
 
-    image_center_x_ = config.image_center_x;
-    image_center_y_ = config.image_center_y;
-    inner_ring_radius_ = config.inner_ring_radius;
-    ring_dr_ = config.ring_dr;
-    num_ring_points_ = config.num_ring_points;
-    num_rings_ = config.num_rings;
-    win_size_ = config.pyr_window_size;
-    pixel_scale_ = config.pixel_scale;
-    blur_size_ = config.blur_size;
-    alpha_ = config.alpha;
+    image_center_x_     = config.image_center_x;
+    image_center_y_     = config.image_center_y;
+    inner_ring_radius_  = config.inner_ring_radius;
+    ring_dr_            = config.ring_dr;
+    num_ring_points_    = config.num_ring_points;
+    num_rings_          = config.num_rings;
+    win_size_           = config.pyr_window_size;
+    pixel_scale_        = config.pixel_scale;
+    blur_size_          = config.blur_size;
+    alpha_              = config.alpha;
 
-    num_of_rows_ = config.num_of_rows;
-    num_of_cols_ = config.num_of_cols;
+    num_of_rows_        = config.num_of_rows;
+    num_of_cols_        = config.num_of_cols;
+    num_of_pyramids_    = config.num_of_pyramids;
 
 }
 
 void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
-
-    std::string image_encoding_ = image_msg->encoding;
-    std::cout << image_encoding_ << std::endl;
 
     // Convert the ros image msg into a cv mat
     image_timestamp_ = image_msg->header.stamp;
@@ -87,14 +85,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     
     try
     {
-        if(image_encoding_ == "bgr8")
-        {
-            image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
-        }
-        // else if(image_encoding_ == 'rgb8')
-        // {
-        //     image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::RGB8);
-        // }
+        image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -113,8 +104,9 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     
     
     // Apply Gaussian Blur to colored image
-    if (if_blur_){
-      cv::GaussianBlur(rgb_image, rgb_image, Size(blur_size_,blur_size_), 0, 0 );
+    if (if_blur_)
+    {
+      cv::GaussianBlur(rgb_image, rgb_image, Size(blur_size_,blur_size_), 0 );
     }
 
     cv::Mat grey_image;
@@ -135,6 +127,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     float img_width = grey_image.cols;
     float img_height = grey_image.rows;
+    std::cout << "size:" << img_width << "," << img_height << std::endl << std::endl;
     float col_spacing = img_width  / (num_of_cols_ + 1);
     float row_spacing = img_height / (num_of_rows_ + 1);
 
@@ -147,13 +140,12 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         }
     }
 
-    cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, 3, termcrit, 0, 0.001);
+    cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, num_of_pyramids_, termcrit, 0, 0.001);
 
     // Process the CV mat and compute optic flow at various pixels
     for (int i= 1; i < num_of_cols_*num_of_rows_; i++){
         cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
-    
     prev_grey_image_ = grey_image;
 
     // Convert flow ring points in u-v coordinates to tangential optic flow

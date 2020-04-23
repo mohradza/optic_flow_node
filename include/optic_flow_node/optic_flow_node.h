@@ -82,17 +82,18 @@ class OpticFlowNode{
         int num_ring_points_;
         int num_rings_;
         int ring_dr_;
+        int blur_size_;
         Mat prev_grey_image_;
         bool init_;
         bool if_blur_;
         int win_size_;
-        int blur_size_;
         double alpha_;
         double pixel_scale_;
         float dt_;
 
         int num_of_rows_;
         int num_of_cols_;
+        int num_of_pyramids_;
         bool if_flip_;
 
         MatrixXd tang_flow_;
