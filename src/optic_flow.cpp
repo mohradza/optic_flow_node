@@ -92,16 +92,17 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
      
+    // Resize image
+    int ColumnOfNewImage = 240;
+    int RowsOfNewImage = 135;
+    resize(image_ptr->image, rgb_image, Size(ColumnOfNewImage,RowsOfNewImage));
+
     // Flip image
     if (if_flip_)
     {
-        cv::flip(image_ptr->image, rgb_image, 0);
+        cv::flip(rgb_image, rgb_image, 0);
     }
-    else
-    {
-        rgb_image = image_ptr->image;
-    }
-    
+    else    
     
     // Apply Gaussian Blur to colored image
     if (if_blur_)
@@ -143,7 +144,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, num_of_pyramids_, termcrit, 0, 0.001);
 
     // Process the CV mat and compute optic flow at various pixels
-    for (int i= 1; i < num_of_cols_*num_of_rows_; i++){
+    for (int i= 0; i < num_of_cols_*num_of_rows_; i++){
         cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
     prev_grey_image_ = grey_image;
