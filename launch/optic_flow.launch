@@ -5,19 +5,8 @@
 
   <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager" output="screen" />
 
-    <!-- Downsample RGB Image -->
-    <node pkg="nodelet" type="nodelet" name="rgb_resize" args="load image_proc/resize standalone_nodelet" respawn="true" >
-        <remap from="image" to="/videofile/image_raw"/>
-        <remap from="~image" to="/videofile/image_small"/>
-        <rosparam>
-            use_scale: True
-            scale_height: 0.125
-            scale_width: 0.125
-        </rosparam>
-    </node>
-
   <node name="rgb_optic_flow_node" pkg="optic_flow_node" type="optic_flow_node" output="screen" >
-      <remap from="/usb_cam/image_raw" to="/videofile/image_small"/>
+      <remap from="/usb_cam/image_raw" to="/videofile/image_raw"/>
       <param name="image_center_x" value="320"/>
       <param name="image_center_y" value="240"/>
       <param name="inner_ring_radius" value="220"/>
@@ -33,28 +22,24 @@
       <param name="num_of_rows" value="23"/>
       <param name="num_of_cols" value="23"/>
 
-      <param name="pyr_window_size" value="20"/>
+      <param name="pyr_window_size" value="12"/>
       <param name="num_of_pyramids" value="3"/>
+      <!-- <param name="pyr_window_size" value="40"/>
+      <param name="num_of_pyramids" value="3"/> -->
 
       <param name="if_blur" value="false"/>
       <!-- Blur size must be an int odd number -->
       <param name="blur_size" value="21"/>
 
+      <param name="resize_of_cols" value="0.0625"/>
+      <param name="resize_of_rows" value="0.0625"/>
+      <param name="resize_vz_cols" value="0.5000"/>
+      <param name="resize_vz_rows" value="0.5000"/>
+
   </node>
 
-    <!-- Downsample RGB Image -->
-    <node pkg="nodelet" type="nodelet" name="thermal_resize" args="load image_proc/resize standalone_nodelet" respawn="true" >
-        <remap from="image" to="/lepton_viz"/>
-        <remap from="~image" to="/lepton_viz_small"/>
-        <rosparam>
-            use_scale: True
-            scale_height: 0.250
-            scale_width: 0.250
-        </rosparam>
-    </node>
-
   <node name="thermal_optic_flow_node" pkg="optic_flow_node" type="optic_flow_node" output="screen" >
-      <remap from="/usb_cam/image_raw" to="/lepton_viz_small"/>
+      <remap from="/usb_cam/image_raw" to="/lepton_viz"/>
       <param name="image_center_x" value="320"/>
       <param name="image_center_y" value="240"/>
       <param name="inner_ring_radius" value="220"/>
@@ -68,15 +53,21 @@
       <param name="num_ring_points" value="100"/>
       <param name="num_rings" value="100"/>
 
-      <param name="num_of_rows" value="23"/>
-      <param name="num_of_cols" value="23"/>
+      <param name="num_of_rows" value="11"/>
+      <param name="num_of_cols" value="11"/>
 
-      <param name="pyr_window_size" value="41"/>
-      <param name="num_of_pyramids" value="7"/>
+      <param name="pyr_window_size" value="8"/>
+      <param name="num_of_pyramids" value="3"/>
 
-      <param name="if_blur" value="true"/>
+      <param name="if_blur" value="false"/>
       <!-- Blur size must be an int odd number -->
       <param name="blur_size" value="41"/>
+
+      <param name="resize_of_cols" value="0.1250"/>
+      <param name="resize_of_rows" value="0.1250"/>
+      <param name="resize_vz_cols" value="1.0000"/>
+      <param name="resize_vz_rows" value="1.0000"/>
+
 
   </node>
 

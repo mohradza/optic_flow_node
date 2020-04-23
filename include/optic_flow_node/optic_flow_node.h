@@ -96,6 +96,11 @@ class OpticFlowNode{
         int num_of_pyramids_;
         bool if_flip_;
 
+        float resize_of_cols_;
+        float resize_of_rows_;
+        float resize_vz_cols_;
+        float resize_vz_rows_;
+        
         MatrixXd tang_flow_;
         //Mat tang_flow_= Mat(num_rings_, num_ring_points_, CV_32F);
         ros::Time image_timestamp_;

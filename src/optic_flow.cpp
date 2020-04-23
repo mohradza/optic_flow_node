@@ -74,6 +74,11 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
     num_of_cols_        = config.num_of_cols;
     num_of_pyramids_    = config.num_of_pyramids;
 
+    resize_of_cols_    = config.resize_of_cols;
+    resize_of_rows_    = config.resize_of_rows;
+    resize_vz_cols_    = config.resize_vz_cols;
+    resize_vz_rows_    = config.resize_vz_rows;
+
 }
 
 void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
@@ -81,7 +86,6 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     // Convert the ros image msg into a cv mat
     image_timestamp_ = image_msg->header.stamp;
     CvImagePtr image_ptr;
-    cv::Mat rgb_image;
     
     try
     {
@@ -92,26 +96,33 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
         ROS_ERROR("cv_bridge exception: %s", e.what());
     }
      
+
+    float orig_img_width    = image_ptr->image.cols;
+    float orig_img_height   = image_ptr->image.rows;
+
+    std::cout << "orig size:" << orig_img_width << "," << orig_img_height << std::endl << std::endl;
+
     // Resize image
-    int ColumnOfNewImage = 240;
-    int RowsOfNewImage = 135;
-    resize(image_ptr->image, rgb_image, Size(ColumnOfNewImage,RowsOfNewImage));
+    cv::Mat rgb_image;
+    cv::Mat rgb_image_of;
+    rgb_image = image_ptr->image;
+    resize(rgb_image, rgb_image_of, Size(resize_of_cols_ * orig_img_width,resize_of_rows_ * orig_img_height));
 
     // Flip image
     if (if_flip_)
     {
-        cv::flip(rgb_image, rgb_image, 0);
+        cv::flip(rgb_image_of, rgb_image_of, 0);
     }
     else    
     
     // Apply Gaussian Blur to colored image
     if (if_blur_)
     {
-      cv::GaussianBlur(rgb_image, rgb_image, Size(blur_size_,blur_size_), 0 );
+      cv::GaussianBlur(rgb_image_of, rgb_image_of, Size(blur_size_,blur_size_), 0 );
     }
 
     cv::Mat grey_image;
-    cv::cvtColor(rgb_image, grey_image, CV_BGR2GRAY);
+    cv::cvtColor(rgb_image_of, grey_image, CV_BGR2GRAY);
 
     if (init_){
         prev_grey_image_ = grey_image;
@@ -128,7 +139,10 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     float img_width = grey_image.cols;
     float img_height = grey_image.rows;
-    std::cout << "size:" << img_width << "," << img_height << std::endl << std::endl;
+
+    std::cout << "new size:" << img_width << "," << img_height << std::endl << std::endl;
+
+
     float col_spacing = img_width  / (num_of_cols_ + 1);
     float row_spacing = img_height / (num_of_rows_ + 1);
 
@@ -142,12 +156,18 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     }
 
     cv::calcOpticalFlowPyrLK(prev_grey_image_, grey_image, points2track_, newpoints_, status, err, winSize, num_of_pyramids_, termcrit, 0, 0.001);
+    prev_grey_image_ = grey_image;
 
+    // Resize image for visualization
+    cv::Mat rgb_image_viz;
+    resize(rgb_image, rgb_image_viz, Size(resize_vz_cols_ * orig_img_width,resize_vz_rows_ * orig_img_height));
+
+    float k_col = resize_vz_cols_ / resize_of_cols_;
+    float k_row = resize_vz_rows_ / resize_of_rows_;
     // Process the CV mat and compute optic flow at various pixels
     for (int i= 0; i < num_of_cols_*num_of_rows_; i++){
-        cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
+        cv::line(rgb_image_viz, k_row*points2track_[i], k_col*newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
-    prev_grey_image_ = grey_image;
 
     // Convert flow ring points in u-v coordinates to tangential optic flow
     u_flow_.clear();
@@ -169,10 +189,11 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     if (init_){
         init_ = false;
     }
+
     
     // Display the image with resulting flow
     if(debug_){
-        imshow("window1", rgb_image);//image_ptr->image);
+        imshow("window1", rgb_image_viz);//image_ptr->image);
         waitKey(3);
     }
 
