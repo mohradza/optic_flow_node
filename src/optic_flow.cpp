@@ -77,6 +77,9 @@ void OpticFlowNode::configCb(Config &config, uint32_t level)
 
 void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
+    std::string image_encoding_ = image_msg->encoding;
+    std::cout << image_encoding_ << std::endl;
+
     // Convert the ros image msg into a cv mat
     image_timestamp_ = image_msg->header.stamp;
     CvImagePtr image_ptr;
@@ -84,7 +87,14 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     
     try
     {
-        image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
+        if(image_encoding_ == "bgr8")
+        {
+            image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
+        }
+        // else if(image_encoding_ == 'rgb8')
+        // {
+        //     image_ptr = toCvCopy(image_msg, sensor_msgs::image_encodings::RGB8);
+        // }
     }
     catch (cv_bridge::Exception& e)
     {
@@ -123,7 +133,6 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     cv::Size winSize(win_size_,win_size_);
     TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
 
-
     float img_width = grey_image.cols;
     float img_height = grey_image.rows;
     float col_spacing = img_width  / (num_of_cols_ + 1);
@@ -144,6 +153,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
     for (int i= 1; i < num_of_cols_*num_of_rows_; i++){
         cv::line(rgb_image, points2track_[i], newpoints_[i], CV_RGB(255,0,0),2); //image_ptr->image
     }
+    
     prev_grey_image_ = grey_image;
 
     // Convert flow ring points in u-v coordinates to tangential optic flow

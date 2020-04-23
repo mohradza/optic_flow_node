@@ -2,7 +2,7 @@
 <!-- Simple launch file to run offline optic flow on recorderd usb cam images-->
   <arg name="oflow_plot" default="false" doc="plot tangential optic flow (not filtered) vs gamma along time"/>
 
-  <node name="optic_flow_node" pkg="optic_flow_node" type="optic_flow_node" output="screen" >
+  <node name="rgb_optic_flow_node" pkg="optic_flow_node" type="optic_flow_node" output="screen" >
       <remap from="/usb_cam/image_raw" to="/videofile/image_raw"/>
       <param name="image_center_x" value="320"/>
       <param name="image_center_y" value="240"/>
@@ -10,7 +10,7 @@
       <param name="ring_dr" value="10"/>
       <param name="num_ring_points" value="160"/>
       <param name="num_rings" value="5"/>
-      <param name="pyr_window_size" value="50"/>
+      <param name="pyr_window_size" value="100"/>
       <param name="pixel_scale" value="215"/>
       <!-- Blur size must be an int odd number -->
       <param name="if_blur" value="false"/>
@@ -25,6 +25,31 @@
       <param name="num_of_cols" value="23"/>
   </node>
 
-  <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="oflow_visualizer" type="oflow_visualizer.py" output="screen"/>
+  <!-- <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="rgb_oflow_visualizer" type="oflow_visualizer.py" output="screen"/> -->
+
+  <node name="thermal_optic_flow_node" pkg="optic_flow_node" type="optic_flow_node" output="screen" >
+      <remap from="/usb_cam/image_raw" to="/lepton_viz"/>
+      <param name="image_center_x" value="320"/>
+      <param name="image_center_y" value="240"/>
+      <param name="inner_ring_radius" value="220"/>
+      <param name="ring_dr" value="10"/>
+      <param name="num_ring_points" value="160"/>
+      <param name="num_rings" value="5"/>
+      <param name="pyr_window_size" value="41"/>
+      <param name="pixel_scale" value="215"/>
+      <!-- Blur size must be an int odd number -->
+      <param name="if_blur" value="true"/>
+      <param name="blur_size" value="21"/>
+      <param name="alpha" value="0.7"/>
+
+
+      <param name="num_ring_points" value="100"/>
+      <param name="num_rings" value="100"/>
+
+      <param name="num_of_rows" value="23"/>
+      <param name="num_of_cols" value="23"/>
+  </node>
+
+  <!-- <node if="$(arg oflow_plot)" pkg="optic_flow_node" name="thermal_oflow_visualizer" type="oflow_visualizer.py" output="screen"/> -->
 
 </launch>
