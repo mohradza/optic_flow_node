@@ -109,6 +109,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
 
     // Convert the ros image msg into a cv mat
     image_timestamp_ = image_msg->header.stamp;
+    height_ = image_msg->height;
     CvImagePtr image_ptr;
     cv::Mat flippedx, flippedxy;
     try
@@ -189,7 +190,7 @@ void OpticFlowNode::imageCb(const sensor_msgs::ImageConstPtr& image_msg){
       int c = 0;
           for (int r = 0; r < num_rings_; r++){
             // Only average pixels inside the image
-            if (points2track_[index].y>=0 || points2track_[index].y<=480){
+            if (points2track_[index].y>=0 || points2track_[index].y<=height_){
               xring.push_back(tang_flow_(r,i));
               c++;
             }

@@ -78,6 +78,7 @@ class OpticFlowNode{
 
         int image_center_x_;
         int image_center_y_;
+        int height_;
         double inner_ring_radius_;
         int num_ring_points_;
         int num_rings_;
