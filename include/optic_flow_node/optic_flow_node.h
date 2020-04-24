@@ -22,10 +22,14 @@
 #include <image_transport/image_transport.h>
 #include <optic_flow_node/OpticFlowNodeConfig.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Core>
+
 
 using namespace cv_bridge;
 using namespace cv;
 using namespace std;
+using namespace Eigen;
 
 namespace wf_of{
 
@@ -58,7 +62,7 @@ class OpticFlowNode{
         ros::Publisher pub_u_flow_;
         ros::Publisher pub_v_flow_;
         ros::Publisher pub_tang_flow_;
-
+        ros::Publisher pub_filt_tang_flow_;
 
         std::string OPENCV_WINDOW;
         bool debug_;
@@ -68,20 +72,28 @@ class OpticFlowNode{
         std::vector<float> v_flow_;
         //std::vector<float> tang_flow_;
         std::vector<float> ave_tang_flow_;
+        std::vector<float> filt_ave_tang_flow_;
+        std::vector<float> prev_filtered_oflow_;
         std::vector<float> gamma_vector_;
 
         int image_center_x_;
         int image_center_y_;
+        int height_;
         double inner_ring_radius_;
         int num_ring_points_;
         int num_rings_;
         int ring_dr_;
         Mat prev_grey_image_;
         bool init_;
+        bool if_blur_;
         int win_size_;
+        int blur_size_;
+        double alpha_;
         double pixel_scale_;
         float dt_;
-        Mat tang_flow_= Mat(10,10, CV_32F);
+
+        MatrixXd tang_flow_;
+        //Mat tang_flow_= Mat(num_rings_, num_ring_points_, CV_32F);
         ros::Time image_timestamp_;
         ros::Time last_image_timestamp_;
 
